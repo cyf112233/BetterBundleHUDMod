@@ -1,5 +1,7 @@
 package betterbundle.gui;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -7,27 +9,27 @@ import net.minecraft.world.item.Items;
 import java.util.Set;
 
 public enum BundleCategory {
-    ALL("全部", Items.COMPASS),
-    BLOCKS("方块", Items.GRASS_BLOCK),
-    NON_FULL_BLOCKS("不完整方块", Items.SPRUCE_DOOR),
-    PLANTS("植物", Items.CHERRY_SAPLING),
-    FOOD("食物", Items.BREAD),
-    TOOLS_AND_EQUIPMENT("工具和装备", Items.DIAMOND_CHESTPLATE),
-    MISC("杂物", Items.LEATHER),
-    MINERALS("矿物", Items.DIAMOND);
+    ALL("全部", "minecraft:compass"),
+    BLOCKS("方块", "minecraft:grass_block"),
+    NON_FULL_BLOCKS("不完整方块", "minecraft:spruce_door"),
+    PLANTS("植物", "minecraft:oak_sapling"),
+    FOOD("食物", "minecraft:bread"),
+    TOOLS_AND_EQUIPMENT("工具和装备", "minecraft:diamond_chestplate"),
+    MISC("杂物", "minecraft:leather"),
+    MINERALS("矿物", "minecraft:diamond");
 
     private final String displayName;
-    private final Item iconItem;
+    private final String iconId;
     private Set<String> itemIds;
 
-    BundleCategory(String displayName, Item iconItem) {
+    BundleCategory(String displayName, String iconId) {
         this.displayName = displayName;
-        this.iconItem = iconItem;
+        this.iconId = iconId;
         this.itemIds = Set.of();
     }
 
     public String getDisplayName() { return displayName; }
-    public ItemStack getIcon() { return new ItemStack(iconItem); }
+    public ItemStack getIcon() { return new ItemStack(resolveIcon(iconId)); }
     public void setItemIds(Set<String> ids) { this.itemIds = Set.copyOf(ids); }
     public boolean matches(String registryKey) {
         if (this == ALL) return true;
@@ -490,5 +492,13 @@ public enum BundleCategory {
             "minecraft:raw_copper", "minecraft:raw_gold", "minecraft:raw_iron",
             "minecraft:redstone_block"
         ));
+    }
+
+    private static Item resolveIcon(String id) {
+        String[] parts = id.split(":", 2);
+        String namespace = parts.length == 2 ? parts[0] : "minecraft";
+        String path = parts.length == 2 ? parts[1] : parts[0];
+        Item item = BuiltInRegistries.ITEM.get(new Identifier(namespace, path));
+        return item == Items.AIR ? Items.COMPASS : item;
     }
 }
